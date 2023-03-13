@@ -53,3 +53,7 @@ docker-compose up --build
 ```
 
 This command will run tests and create docker image and will run container from that image.
+
+## Github Repository
+
+[Stock Repo](https://github.com/ehmusman/stock-assignment)
