@@ -23,7 +23,7 @@ it("should check if the result is correct or not on a valid SKU value", async ()
     let item: Stock = stocks.find((stock: Stock) => stock.sku === sku)!
     let qty = item?.stock
     let filteredTransactions: Transaction[] = transactions.filter((transaction: Transaction) => transaction.sku === sku)
-    let qtySum = filteredTransactions.reduce((accumulator: number, currentObject: Transaction) => accumulator + currentObject.qty, 0)
+    let qtySum = filteredTransactions.reduce((accumulator: number, currentObject: Transaction) => currentObject.type === "order" ? accumulator + currentObject.qty : accumulator - currentObject.qty, 0)
 
 
     let stock: StockLevel = await currentStockLevel(sku)
