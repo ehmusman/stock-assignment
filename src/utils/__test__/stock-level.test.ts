@@ -1,40 +1,37 @@
 import { it, expect, describe } from "vitest";
 import { currentStockLevel } from "../stock-level";
-import stockData from "../../data/stock.json";
-import transactionData from "../../data/transactions.json";
 import { StockLevel, Stock, Transaction } from "../../interfaces";
 
+
 describe("currentStockLevel", () => {
-    const sku = "LTV719449/39/39";
-    const transactions: Transaction[] = transactionData as Transaction[];
-    const stocks: Stock[] = stockData;
+    // Mock data
+    const mockStocks: Stock[] = [
+        { sku: "SKU001", stock: 10 },
+        { sku: "SKU002", stock: 5 },
+        { sku: "SKU003", stock: 0 },
+    ]
+    const mockTransactions: Transaction[] = [
+        { sku: "SKU001", type: "order", qty: 5 },
+        { sku: "SKU001", type: "order", qty: 1 },
+        { sku: "SKU002", type: "refund", qty: 2 },
+        { sku: "SKU002", type: "order", qty: 3 },
+    ]
 
-    it("should return an object with the required property names", async () => {
-        const stock: StockLevel = await currentStockLevel(sku);
-        expect(stock).toHaveProperty("sku");
-        expect(stock).toHaveProperty("qty");
-    });
-
-    it("should throw an error when given an empty SKU string", async () => {
-        const emptySku = "";
-        await expect(currentStockLevel(emptySku)).rejects.toThrowError("Valid SKU is required");
-    });
-
-    it("should throw an error when given an invalid SKU value", async () => {
-        const invalidSkus = [1, {}, [], true];
+    it("should throw an error if SKU does not exist", async () => {
+        const sku = "SKU004"
+        await expect(currentStockLevel(sku, mockStocks, mockTransactions)).rejects.toEqual({ message: "SKU does not exists" })
+    })
+    it("should throw an error if SKU is empty or not a string", async () => {
+        const invalidSkus = ["", null, undefined, 123, {}, []]
         for (const sku of invalidSkus) {
-            await expect(currentStockLevel(sku)).rejects.toThrowError("Valid SKU is required");
+            await expect(currentStockLevel(sku, mockStocks, mockTransactions)).rejects.toThrowError("SKU is required")
         }
-    });
+    })
 
     it("should return the correct stock level for a valid SKU value", async () => {
-        const item: Stock = stocks.find((stock: Stock) => stock.sku === sku)!;
-        const initialStock = item.stock ?? 0;
-        const filteredTransactions: Transaction[] = transactions.filter((transaction: Transaction) => transaction.sku === sku);
-        const qtySum = filteredTransactions.reduce((accumulator: number, currentObject: Transaction) => currentObject.type === "order" ? accumulator + currentObject.qty : accumulator - currentObject.qty, 0);
-
-        const stock: StockLevel = await currentStockLevel(sku);
-        expect(stock.sku).toBe(sku);
-        expect(stock.qty).toBe(initialStock - qtySum);
+        const sku = "SKU001"
+        const expectedStockLevel: StockLevel = { sku, qty: 4 }
+        const result = await currentStockLevel(sku, mockStocks, mockTransactions)
+        expect(result).toEqual(expectedStockLevel)
     });
 });
