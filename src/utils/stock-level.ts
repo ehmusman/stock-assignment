@@ -7,18 +7,16 @@ const transactions: Transaction[] = transactionData as Transaction[]
 
 export const currentStockLevel = async (sku: string): Promise<StockLevel> => {
 
-    return new Promise((resolve, reject) => {
-        if (!sku) {
-            reject(new Error("SKU is required"))
-        }
-        let item: Stock | undefined = stocks.find((stock: Stock) => stock.sku === sku)
-        let filteredTransactions: Transaction[] = transactions.filter((transaction: Transaction) => transaction.sku === sku)
-        if (!item && !filteredTransactions.length) {
-            reject({ message: "SKU does not exists" })
-        }
-        const initialStock = item?.stock ?? 0;
-        const qty = calculateSum(filteredTransactions);
-        resolve({ sku, qty: initialStock - qty });
-    })
+    if (!sku || typeof sku !== "string") {
+        throw new Error("Valid SKU is required")
+    }
+    let item: Stock | undefined = stocks.find((stock: Stock) => stock.sku === sku)
+    let filteredTransactions: Transaction[] = transactions.filter((transaction: Transaction) => transaction.sku === sku)
+    if (!item && !filteredTransactions.length) {
+        throw { message: "SKU does not exists" }
+    }
+    const initialStock = item?.stock ?? 0;
+    const qty = calculateSum(filteredTransactions);
+    return { sku, qty: initialStock - qty };
 }
 
